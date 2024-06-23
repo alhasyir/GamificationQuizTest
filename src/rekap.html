@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Klasemen Skor</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <style>
+        .gold {
+            background-color: gold;
+        }
+        .silver {
+            background-color: silver;
+        }
+        .bronze {
+            background-color: #cd7f32;
+        }
+        .popup-content {
+            width: 90%; /* Menyesuaikan lebar container pop-up */
+            max-width: 400px; /* Lebar maksimum untuk pop-up */
+        }
+    </style>
+</head>
+<body class="bg-white text-black flex items-center justify-center min-h-screen"style="background-image: url('/gambar/bg.jpeg'); background-size: cover; background-attachment: fixed;">
+    <div class="container mx-auto p-8 bg-black bg-opacity-75 rounded-lg shadow-lg text-center max-w-3xl">
+        <h1 class="text-4xl font-bold mb-8 text-yellow-400">Klasemen Skor</h1>
+        <div class="overflow-x-auto">
+            <table id="leaderboardTable" class="min-w-full table-auto mb-8 bg-gray-200  border border-gray-400 divide-y divide-gray-400">
+                <thead>
+                    <tr class="bg-gray-700 text-white">
+                        <th class="px-4 py-2 border border-gray-400">Peringkat</th>
+                        <th class="px-4 py-2 border border-gray-400">Nama Peserta</th>
+                        <th class="px-4 py-2 border border-gray-400">Skor Total</th>
+                        <th class="px-4 py-2 border border-gray-400">Waktu Penyelesaian Total (menit:detik)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Leaderboard rows will be inserted here -->
+                </tbody>
+            </table>
+        </div>
+        <div class="button-container">
+            <button class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded mr-2" onclick="goBack()">Kembali</button>
+            <button class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mr-2" id="lencana">Klaim Achivement</button>
+            <button class="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded" id="logout">Logout</button>
+        </div>
+    </div>
+
+    <!-- Pop-up -->
+    <div id="congratsPopup" class="popup fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden">
+        <div class="popup-content bg-white text-black p-8 rounded-lg shadow-lg text-center">
+            <span class="close text-gray-500 text-2xl font-bold cursor-pointer" onclick="closePopup()">&times;</span>
+            <img src="/gambar/12.jpg" alt="Congratulations Image" class="w-full h-auto mb-4">
+            <h2 class="text-2xl font-bold mb-4">Selamat!</h2>
+            <p>Anda berhasil memenangkan quiz ini!! Silahkan hubungi instruktur untuk klaim hadiah!!</p>
+        </div>
+    </div>
+
+    <script>
+        const leaderboardPemula = JSON.parse(localStorage.getItem('leaderboardPemula')) || [];
+        const leaderboardMenengah = JSON.parse(localStorage.getItem('leaderboardMenengah')) || [];
+        const leaderboardTinggi = JSON.parse(localStorage.getItem('leaderboardTinggi')) || [];
+        const leaderboardMaster = JSON.parse(localStorage.getItem('leaderboardMaster')) || [];
+
+        const leaderboardTable = document.getElementById('leaderboardTable').getElementsByTagName('tbody')[0];
+        const congratsPopup = document.getElementById('congratsPopup');
+
+        const combinedLeaderboard = [...leaderboardPemula, ...leaderboardMenengah, ...leaderboardTinggi, ...leaderboardMaster];
+
+        const totalScores = combinedLeaderboard.reduce((acc, record) => {
+            if (!acc[record.username]) {
+                acc[record.username] = { score: 0, completionTime: 0 };
+            }
+            acc[record.username].score += record.score;
+            acc[record.username].completionTime += record.completionTime;
+            return acc;
+        }, {});
+
+        const sortedUsers = Object.keys(totalScores).map(username => ({
+            username: username,
+            score: totalScores[username].score,
+            completionTime: totalScores[username].completionTime
+        })).sort((a, b) => b.score - a.score || a.completionTime - b.completionTime);
+
+        sortedUsers.forEach((user, index) => {
+            const row = leaderboardTable.insertRow();
+            const rankCell = row.insertCell(0);
+            const usernameCell = row.insertCell(1);
+            const scoreCell = row.insertCell(2);
+            const timeCell = row.insertCell(3);
+
+            rankCell.textContent = index + 1;
+            usernameCell.textContent = user.username;
+            scoreCell.textContent = user.score;
+            timeCell.textContent = formatTime(user.completionTime);
+
+            if (user.score === 505) {
+                showPopup();
+            }
+
+            if (index === 0) {
+                row.classList.add('gold');
+            } else if (index === 1) {
+                row.classList.add('silver');
+            } else if (index === 2) {
+                row.classList.add('bronze');
+            }
+
+            rankCell.classList.add('border', 'border-gray-400');
+            usernameCell.classList.add('border', 'border-gray-400');
+            scoreCell.classList.add('border', 'border-gray-400');
+            timeCell.classList.add('border', 'border-gray-400');
+        });
+
+        function formatTime(seconds) {
+            const minutes = Math.floor(seconds / 60);
+            const remainingSeconds = seconds % 60;
+            return `${minutes}:${remainingSeconds < 10 ? '0' : ''}${remainingSeconds}`;
+        }
+
+        function goBack() {
+            window.location.href = 'user.html';
+        }
+
+        document.getElementById('lencana').addEventListener('click', () => {
+            window.location.href = 'rekaplencana.html';
+        });
+
+        document.getElementById('logout').addEventListener('click', () => {
+            localStorage.removeItem('username');
+            window.location.href = 'index.html';
+        });
+
+        function showPopup() {
+            congratsPopup.classList.remove('hidden');
+        }
+
+        function closePopup() {
+            congratsPopup.classList.add('hidden');
+        }
+
+        window.onclick = function(event) {
+            if (event.target == congratsPopup) {
+                congratsPopup.classList.add('hidden');
+            }
+        }
+    </script>
+</body>
+</html>

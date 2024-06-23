@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz Course Level Menengah</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+</head>
+<body class="bg-cover bg-center text-center font-sans" style="background-image: url('/gambar/bg.jpeg'); background-size: cover; background-attachment: fixed;">
+    <div class="container max-w-2xl mx-auto mt-20 pt-10 p-5 bg-white bg-opacity-90 shadow-lg rounded-lg relative">
+        <h1 class="text-2xl font-bold text-gray-800">Quiz Course: Level Menengah</h1>
+        <div id="questionContainer" class="my-5"></div>
+        <div id="progressContainer" class="progress border rounded h-4 my-5">
+            <div class="progress-bar bg-blue-500 h-full rounded" id="progressBar" style="width: 0%;"></div>
+        </div>
+        <div id="timerContainer" class="timer text-lg my-5">
+            <span id="timer">Time: 10</span>
+        </div>
+        <div id="scoreContainer" class="hidden mx-auto m p-5">
+            <h2 class="text-2xl font-bold text-gray-800">Quiz selesai!</h2>
+            <p id="score" class="my-2 text-lg font-semibold text-gray-700"></p>
+            <p id="baseScore" class="my-2 text-gray-600"></p>
+            <p id="bonusScore" class="my-2 text-gray-600"></p>
+            <p id="streakInfo" class="my-2 text-gray-600"></p>
+            <p id="deductions" class="my-2 text-gray-600"></p>
+            <p id="completionTime" class="my-2 text-gray-600"></p>
+            <div class="buttons flex justify-around my-5">
+                <button id="nextLevel" class="bg-green-500 text-white px-4 py-2 rounded">Level Selanjutnya</button>
+                <button id="restartLevel" class="bg-yellow-500 text-white px-4 py-2 rounded">Ulangi Level</button>
+                <button id="logout" class="bg-red-500 text-white px-4 py-2 rounded">Logout</button>
+            </div>
+        </div>
+        <div id="noQuestionsModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden">
+            <div class="bg-white rounded-lg p-8 shadow-lg max-w-sm w-full text-center">
+                <h2 class="text-2xl font-bold mb-4">Tidak Ada Pertanyaan</h2>
+                <p class="text-gray-700 mb-6">Tidak ada pertanyaan yang tersedia. Silahkan hubungi instruktur.</p>
+                <button id="closeNoQuestionsModal" class="py-2 px-4 bg-blue-500 text-white rounded-lg transition transform hover:bg-blue-600">Tutup</button>
+            </div>
+        </div>
+        <audio id="backgroundMusic" src="/music/menengah.mp3" loop></audio>
+        <audio id="correctSound" src="/music/correct.mp3"></audio>
+        <audio id="wrongSound" src="/music/wrong.mp3"></audio>
+        <audio id="timerSound" src="/music/timer.mp3"></audio>
+        <audio id="winMusic" src="/music/victory.mp3"></audio>
+        <audio id="loseMusic" src="/music/lose.mp3"></audio>
+        <img id="muteButton" class="w-8 h-8 cursor-pointer absolute top-2 right-2" src="/gambar/mute.png" alt="Mute/Unmute">
+        <script>
+            const questions = JSON.parse(localStorage.getItem('savedQuestionsLevel2')) || [];
+            let currentQuestionIndex = 0;
+            let score = 0;
+            let baseScore = 0;
+            let bonusScore = 0;
+            let deductions = 0;
+            let streak = 0;
+            let correctStreak = 0;
+            let startTime;
+            const questionContainer = document.getElementById('questionContainer');
+            const progressContainer = document.getElementById('progressContainer');
+            const progressBar = document.getElementById('progressBar');
+            const timerContainer = document.getElementById('timerContainer');
+            const timerElement = document.getElementById('timer');
+            const scoreContainer = document.getElementById('scoreContainer');
+            const scoreElement = document.getElementById('score');
+            const baseScoreElement = document.getElementById('baseScore');
+            const bonusScoreElement = document.getElementById('bonusScore');
+            const streakInfoElement = document.getElementById('streakInfo');
+            const deductionsElement = document.getElementById('deductions');
+            const completionTimeElement = document.getElementById('completionTime');
+            const username = localStorage.getItem('username') || 'User';
+            const backgroundMusic = document.getElementById('backgroundMusic');
+            const correctSound = document.getElementById('correctSound');
+            const wrongSound = document.getElementById('wrongSound');
+            const timerSound = document.getElementById('timerSound');
+            const winMusic = document.getElementById('winMusic');
+            const loseMusic = document.getElementById('loseMusic');
+            const muteButton = document.getElementById('muteButton');
+            const noQuestionsModal = document.getElementById('noQuestionsModal');
+            const closeNoQuestionsModal = document.getElementById('closeNoQuestionsModal');
+            const leaderboard = JSON.parse(localStorage.getItem('leaderboardMenengah')) || [];
+            let isMuted = false;
+
+            function startQuiz() {
+                if (questions.length === 0) {
+                    noQuestionsModal.classList.remove('hidden');
+                    return;
+                }
+                backgroundMusic.volume = 0.3;
+                backgroundMusic.play().catch(error => {
+                    console.log('Autoplay was prevented, user interaction needed to start audio');
+                });
+                startTime = new Date().getTime();
+                showQuestion(questions[currentQuestionIndex]);
+                startTimer();
+            }
+
+            closeNoQuestionsModal.addEventListener('click', () => {
+                noQuestionsModal.classList.add('hidden');
+                window.history.back();
+            });
+
+            function showQuestion(question) {
+                questionContainer.innerHTML = `
+                    <div class="question my-5">
+                        <h3 class="text-lg font-semibold">Pertanyaan ${question.questionNumber}</h3>
+                        <p class="text-gray-700">${question.questionText}</p>
+                        ${question.imageUrl ? `<div class="flex justify-center"><img src="${question.imageUrl}" class="my-3 rounded" alt="Question Image"></div>` : ''}
+                    </div>
+                    <ul class="options list-none p-0">
+                        ${Object.keys(question.options).map(key => `
+                            <li class="my-2"><button class="w-full p-3 border rounded transition-colors" onclick="selectAnswer('${key}')">${key}: ${question.options[key]}</button></li>
+                        `).join('')}
+                    </ul>
+                `;
+            }
+
+            function selectAnswer(selectedOption) {
+                const question = questions[currentQuestionIndex];
+                const buttons = document.querySelectorAll('.options button');
+                buttons.forEach(button => {
+                    button.disabled = true;
+                    if (button.textContent.startsWith(selectedOption)) {
+                        if (selectedOption === question.correctOption) {
+                            button.classList.add('bg-green-500', 'text-white');
+                            baseScore += 10;
+                            correctStreak++;
+                            if (correctStreak % 5 === 0) {
+                                streak += 0;
+                            }
+                            correctSound.play();
+                        } else {
+                            button.classList.add('bg-red-500', 'text-white');
+                            correctStreak = 0;
+                            wrongSound.play();
+                        }
+                    }
+                });
+                timerSound.pause();
+                timerSound.currentTime = 0;
+                currentQuestionIndex++;
+                updateProgressBar();
+                setTimeout(() => {
+                    if (currentQuestionIndex < questions.length) {
+                        showQuestion(questions[currentQuestionIndex]);
+                        resetTimer();
+                    } else {
+                        endQuiz();
+                    }
+                }, 1000);
+            }
+
+            function updateProgressBar() {
+                const progressPercentage = ((currentQuestionIndex / questions.length) * 100) + '%';
+                progressBar.style.width = progressPercentage;
+            }
+
+            function startTimer() {
+                let timeLeft = 10;
+                timerElement.textContent = `Time: ${timeLeft}`;
+                timer = setInterval(() => {
+                    timeLeft--;
+                    timerElement.textContent = `Time: ${timeLeft}`;
+                    if (timeLeft === 5 && currentQuestionIndex < questions.length) {
+                        timerSound.play();
+                    }
+                    if (timeLeft <= 0) {
+                        clearInterval(timer);
+                        currentQuestionIndex++;
+                        updateProgressBar();
+                        if (currentQuestionIndex < questions.length) {
+                            showQuestion(questions[currentQuestionIndex]);
+                            resetTimer();
+                        } else {
+                            endQuiz();
+                        }
+                    }
+                }, 1000);
+            }
+
+            function resetTimer() {
+                clearInterval(timer);
+                startTimer();
+            }
+
+            function endQuiz() {
+                clearInterval(timer);
+                const completionTime = Math.floor((new Date().getTime() - startTime) / 1000);
+                if (completionTime <= 65 && baseScore / 10 === questions.length) {
+                    bonusScore = 15;
+                }
+                score = baseScore + streak + bonusScore - deductions;
+                saveScore(score, completionTime);
+                backgroundMusic.pause();
+                backgroundMusic.currentTime = 0;
+                if (score >= 65) {
+                    winMusic.play();
+                } else {
+                    loseMusic.play();
+                }
+                questionContainer.classList.add('hidden');
+                progressContainer.classList.add('hidden');
+                timerContainer.classList.add('hidden');
+                scoreContainer.classList.remove('hidden');
+            
+                scoreElement.textContent = `${username}, kamu mendapatkan skor total: ${score}`;
+                baseScoreElement.textContent = `Skor Dasar: ${baseScore}`;
+                bonusScoreElement.textContent = `Bonus Skor: ${bonusScore}`;
+                streakInfoElement.textContent = `Streak Skor: ${streak}`;
+                deductionsElement.textContent = `Pengurangan Skor: ${deductions}`;
+                completionTimeElement.textContent = `Waktu Penyelesaian: ${completionTime} detik`;
+                if (score < 65) {
+                    document.getElementById('nextLevel').classList.add('hidden');
+                } else {
+                    document.getElementById('restartLevel').classList.add('hidden');
+                }
+            }
+
+            function saveScore(score, completionTime) {
+                const existingScoreIndex = leaderboard.findIndex(entry => entry.username === username && entry.level === 'levelMenengah');
+                if (existingScoreIndex !== -1) {
+                    leaderboard[existingScoreIndex].score = score;
+                    leaderboard[existingScoreIndex].completionTime = completionTime;
+                } else {
+                    leaderboard.push({
+                        username: username,
+                        level: 'levelMenengah',
+                        score: score,
+                        completionTime: completionTime
+                    });
+                }
+                localStorage.setItem('leaderboardMenengah', JSON.stringify(leaderboard));
+            }
+
+            muteButton.addEventListener('click', () => {
+                isMuted = !isMuted;
+                if (isMuted) {
+                    backgroundMusic.muted = true;
+                    correctSound.muted = true;
+                    wrongSound.muted = true;
+                    timerSound.muted = true;
+                    winMusic.muted = true;
+                    loseMusic.muted = true;
+                    muteButton.src = '/gambar/unmute.png';
+                } else {
+                    backgroundMusic.muted = false;
+                    correctSound.muted = false;
+                    wrongSound.muted = false;
+                    timerSound.muted = false;
+                    winMusic.muted = false;
+                    loseMusic.muted = false;
+                    muteButton.src = '/gambar/mute.png';
+                }
+            });
+
+            document.getElementById('nextLevel').addEventListener('click', () => {
+                if (score >= 65) {
+                    window.location.href = 'user.html';
+                }
+            });
+
+            document.getElementById('restartLevel').addEventListener('click', () => {
+                window.location.reload();
+            });
+
+            document.getElementById('logout').addEventListener('click', () => {
+                localStorage.removeItem('username');
+                window.location.href = 'index.html';
+            });
+
+            startQuiz();
+        </script>
+    </div>
+</body>
+</html>

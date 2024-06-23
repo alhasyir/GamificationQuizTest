@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Perolehan Lencana</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    
+    <style>
+        body {
+            font-family: 'Press Start 2P', cursive;
+            background-color: #ffffff;
+            color: #333333;
+        }
+
+        .badge img {
+            width: 80px;
+            height: 80px;
+            border-radius: 8px;
+            margin: auto;
+            /* box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); */
+        }
+
+        .badge p {
+            margin-top: 8px;
+            font-size: 0.8rem;
+            font-weight: bold;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background-color: white;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .badge-group {
+            margin-bottom: 20px;
+        }
+
+        .button-container button {
+            transition: background-color 0.3s;
+        }
+
+        .button-container button:hover {
+            transform: translateY(-2px);
+        }
+    </style>
+</head>
+<body class="bg-white text-gray-900" style="background-image: url('/gambar/bg.jpeg'); background-size: cover; background-attachment: fixed;"></body>
+    <div class="container mx-auto p-6 bg-white rounded-lg shadow-lg text-center">
+        <h1 class="text-4xl font-bold mb-8 text-yellow-600">Perolehan Lencana</h1>
+        <div id="badgesContainer" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 justify-center">
+        </div>
+        <div class="button-container mt-8 flex justify-center space-x-4">
+            <button class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded" onclick="goBack()">Kembali</button>
+            <button class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded" id="klasemen">Klasemen</button>
+            <button class="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded" id="logout">Logout</button>
+        </div>
+    </div>
+    <script>
+        const levels = ['Pemula', 'Menengah', 'Tinggi', 'Master'];
+        const leaderboard = [];
+
+        // Mengambil data dari localStorage untuk keempat level
+        levels.forEach(level => {
+            const levelData = JSON.parse(localStorage.getItem(`leaderboard${level}`)) || [];
+            leaderboard.push(...levelData);
+        });
+
+        const username = localStorage.getItem('username') || 'User';
+        const userRecords = leaderboard.filter(record => record.username === username);
+        const badgesContainer = document.getElementById('badgesContainer');
+        const badges = new Set();
+
+        let totalScore = 0;
+
+        // Menghitung skor total dan menambahkan lencana berdasarkan kondisi
+        userRecords.forEach(record => {
+            totalScore += record.score;
+
+            if (record.completionTime <= 30) {
+                badges.add(`${record.level}_fast`);
+            }
+
+            switch (record.level) {
+                case 'levelPemula':
+                    if (record.score >= 110) {
+                        badges.add(`${record.level}_score`);
+                    }
+                    break;
+                case 'levelMenengah':
+                    if (record.score >= 115) {
+                        badges.add(`${record.level}_score`);
+                    }
+                    break;
+                case 'levelTinggi':
+                    if (record.score >= 130) {
+                        badges.add(`${record.level}_score`);
+                    }
+                    break;
+                case 'levelMaster':
+                    if (record.score >= 150) {
+                        badges.add(`${record.level}_score`);
+                    }
+                    break;
+            }
+        });
+
+        if (totalScore >= 400) {
+            badges.add('total400');
+        }
+        if (totalScore >= 300) {
+            badges.add('total300');
+        }
+        if (totalScore >= 250) {
+            badges.add('total250');
+        }
+        if (totalScore === 505) {
+            badges.add('perfectScore');
+        }
+
+        // Menambahkan lencana ke dalam kontainer lencana
+        badges.forEach(badge => {
+            let badgeElement = '';
+            switch (badge) {
+                case 'total400':
+                    badgeElement = `
+                        <div class="badge">
+                            <img src="/gambar/1.jpg" alt="Total 400 Badge">
+                            <p>Mendapatkan Skor Total 400 dari keempat level course</p>
+                        </div>
+                    `;
+                    break;
+                case 'total300':
+                    badgeElement = `
+                        <div class="badge">
+                            <img src="/gambar/2.jpg" alt="Total 300 Badge">
+                            <p>Mendapatkan Skor Total 300 dari keempat level course</p>
+                        </div>
+                    `;
+                    break;
+                case 'total250':
+                    badgeElement = `
+                        <div class="badge">
+                            <img src="/gambar/3.jpg" alt="Total 250 Badge">
+                            <p>Mendapatkan Skor Total 250 dari keempat level course</p>
+                        </div>
+                    `;
+                    break;
+                case 'levelPemula_fast':
+                    badgeElement = `
+                        <div class="badge">
+                            <img src="/gambar/4.jpg" alt="Pemula Fast Badge">
+                            <p>Menyelesaikan level quiz pemula hanya dalam waktu ≤ 30 detik</p>
+                        </div>
+                    `;
+                    break;
+                case 'levelMenengah_fast':
+                    badgeElement = `
+                        <div class="badge">
+                            <img src="/gambar/5.jpg" alt="Menengah Fast Badge">
+                            <p>Menyelesaikan level quiz menengah hanya dalam waktu ≤ 30 detik</p>
+                        </div>
+                    `;
+                    break;
+                case 'levelTinggi_fast':
+                    badgeElement = `
+                        <div class="badge">
+                            <img src="/gambar/6.jpg" alt="Tinggi Fast Badge">
+                            <p>Menyelesaikan level quiz tinggi hanya dalam waktu ≤ 30 detik</p>
+                        </div>
+                    `;
+                    break;
+                case 'levelMaster_fast':
+                    badgeElement = `
+                        <div class="badge">
+                            <img src="/gambar/7.jpg" alt="Master Fast Badge">
+                            <p>Menyelesaikan level quiz master hanya dalam waktu ≤ 30 detik</p>
+                        </div>
+                    `;
+                    break;
+                case 'levelPemula_score':
+                    badgeElement = `
+                        <div class="badge">
+                            <img src="/gambar/8.jpg" alt="Pemula Score Badge">
+                            <p>Menyelesaikan level quiz pemula dengan skor 110</p>
+                        </div>
+                    `;
+                    break;
+                case 'levelMenengah_score':
+                    badgeElement = `
+                        <div class="badge">
+                            <img src="/gambar/9.jpg" alt="Menengah Score Badge">
+                            <p>Menyelesaikan level quiz menengah dengan skor 115</p>
+                        </div>
+                    `;
+                    break;
+                case 'levelTinggi_score':
+                    badgeElement = `
+                        <div class="badge">
+                            <img src="/gambar/10.jpg" alt="Tinggi Score Badge">
+                            <p>Menyelesaikan level quiz tinggi dengan skor 130</p>
+                        </div>
+                    `;
+                    break;
+                case 'levelMaster_score':
+                    badgeElement = `
+                        <div class="badge">
+                            <img src="/gambar/11.jpg" alt="Master Score Badge">
+                            <p>Menyelesaikan level quiz master dengan skor 150</p>
+                        </div>
+                    `;
+                    break;
+            }
+            badgesContainer.innerHTML += badgeElement;
+        });
+
+        function goBack() {
+            window.location.href = 'user.html';
+        }
+        document.getElementById('klasemen').addEventListener('click', () => {
+            window.location.href = 'rekap.html';
+        });
+
+        document.getElementById('logout').addEventListener('click', () => {
+            localStorage.removeItem('username');
+            window.location.href = 'index.html';
+        });
+    </script>
+</body>
+</html>

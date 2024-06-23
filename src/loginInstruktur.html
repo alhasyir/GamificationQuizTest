@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login Instruktur</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-image: url('/gambar/bg.jpeg');
+            background-size: cover;
+            background-position: center;
+            font-family: 'Press Start 2P', cursive;
+        }
+        .login-container {
+            backdrop-filter: blur(10px);
+            background-color: rgba(0, 0, 0, 0.7);
+            width: 400px;
+        }
+        .input-field {
+            font-family: 'Press Start 2P', cursive;
+        }
+        .password-container {
+            position: relative;
+        }
+        .toggle-password {
+            position: absolute;
+            right: 0.75rem;
+            top: 50%;
+            transform: translateY(-50%);
+            cursor: pointer;
+            color: #d1d5db;
+        }
+    </style>
+</head>
+<body class="flex items-center justify-center h-screen text-white">
+    <div class="login-container p-8 rounded-lg shadow-lg text-center max-w-md mx-auto">
+        <h1 class="text-4xl mb-8" id="form-title">Login Instruktur</h1>
+        <form id="auth-form" class="space-y-6">
+            <input type="text" class="input-field w-full p-3 rounded-lg bg-gray-800 border border-gray-600 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-yellow-500" placeholder="Username" id="username" required>
+            <div class="password-container">
+                <input type="password" class="input-field w-full p-3 rounded-lg bg-gray-800 border border-gray-600 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-yellow-500" placeholder="Password" id="password" required>
+                <span class="toggle-password" id="toggle-password">
+                    <i class="fa fa-eye"></i>
+                </span>
+            </div>
+            <button type="submit" id="auth-button" class="w-full p-3 bg-green-500 rounded-lg font-bold text-xl transition transform hover:bg-green-600 hover:scale-105">Login</button>
+        </form>
+        <button id="toggle-button" class="mt-4 text-yellow-500 hover:underline">Belum punya akun? Daftar</button>
+    </div>
+
+    <!-- Modal -->
+    <div id="modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden">
+        <div class="bg-white rounded-lg p-8 shadow-lg max-w-sm w-full text-center">
+            <h2 class="text-2xl font-bold mb-4">Error</h2>
+            <p id="modalContent" class="text-gray-700 mb-6"></p>
+            <button id="closeModal" class="py-2 px-4 bg-blue-500 text-white rounded-lg transition transform hover:bg-blue-600">Tutup</button>
+        </div>
+    </div>
+
+    <script>
+        const authForm = document.getElementById('auth-form');
+        const authButton = document.getElementById('auth-button');
+        const toggleButton = document.getElementById('toggle-button');
+        const formTitle = document.getElementById('form-title');
+        const modal = document.getElementById('modal');
+        const modalContent = document.getElementById('modalContent');
+        const closeModal = document.getElementById('closeModal');
+        const togglePassword = document.getElementById('toggle-password');
+        const passwordField = document.getElementById('password');
+
+        let isLoginMode = true;
+        let isInstructorMode = true;
+
+        function showModal(message) {
+            modalContent.innerHTML = message;
+            modal.classList.remove('hidden');
+        }
+
+        closeModal.addEventListener('click', () => {
+            modal.classList.add('hidden');
+        });
+
+        toggleButton.addEventListener('click', () => {
+            isLoginMode = !isLoginMode;
+            if (isLoginMode) {
+                formTitle.textContent = 'Login Instruktur';
+                authButton.textContent = 'Login';
+                toggleButton.textContent = 'Belum punya akun? Daftar';
+            } else {
+                formTitle.textContent = 'Daftar Instruktur';
+                authButton.textContent = 'Daftar';
+                toggleButton.textContent = 'Sudah punya akun? Login';
+            }
+        });
+
+        authForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            const storageKey = isInstructorMode ? 'instructors' : 'users';
+            const storedData = JSON.parse(localStorage.getItem(storageKey)) || {};
+
+            if (isLoginMode) {
+                if (storedData[username] && storedData[username].password === password) {
+                    localStorage.setItem('username', username);
+                    window.location.href = 'instruktur.html';
+                } else {
+                    showModal('Username atau password salah.');
+                }
+            } else {
+                if (storedData[username]) {
+                    showModal('Username sudah terdaftar.');
+                } else {
+                    storedData[username] = { password };
+                    localStorage.setItem(storageKey, JSON.stringify(storedData));
+                    localStorage.setItem('username', username);
+                    window.location.href = 'instruktur.html';
+                }
+            }
+        });
+
+        togglePassword.addEventListener('click', () => {
+            const icon = togglePassword.querySelector('i');
+            if (passwordField.type === 'password') {
+                passwordField.type = 'text';
+                icon.classList.remove('fa-eye');
+                icon.classList.add('fa-eye-slash');
+            } else {
+                passwordField.type = 'password';
+                icon.classList.remove('fa-eye-slash');
+                icon.classList.add('fa-eye');
+            }
+        });
+    </script>
+</body>
+</html>

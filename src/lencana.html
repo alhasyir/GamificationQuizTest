@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Perolehan Lencana</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background-color: #fff;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        h1 {
+            color: #333;
+        }
+
+        .badge {
+            display: inline-block;
+            margin: 20px;
+            text-align: center;
+        }
+
+        .badge img {
+            width: 100px;
+            height: 100px;
+        }
+
+        .badge p {
+            margin-top: 10px;
+        }
+
+        .button-container {
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .button-container button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            background-color: #007bff;
+            color: white;
+            transition: background-color 0.3s;
+        }
+
+        .button-container button:hover {
+            opacity: 0.8;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Achievements</h1>
+        <div id="badgesContainer">
+        </div>
+        <div class="button-container">
+            <button onclick="goBack()">Level Selanjutnya</button>
+            <button id="klasemen">Klasemen</button>
+            <button id="logout">Logout</button>
+        </div>
+    </div>
+    <script>
+        const leaderboard = JSON.parse(localStorage.getItem('leaderboard')) || [];
+        const username = localStorage.getItem('username') || 'User';
+        const userRecords = leaderboard.filter(record => record.username === username);
+        const badgesContainer = document.getElementById('badgesContainer');
+        const badges = new Set();
+
+        userRecords.forEach(record => {
+            if (record.score >= 70) {
+                badges.add('score70');
+                if (record.completionTime <= 60) {
+                    badges.add('score70_60sec');
+                }
+            }
+            if (record.score >= 80) {
+                badges.add('score80');
+            }
+        });
+
+        badges.forEach(badge => {
+            let badgeElement = '';
+            switch (badge) {
+                case 'score70':
+                    badgeElement = `
+                        <div class="badge">
+                            <img src="gambar/1.jpg" alt="Score 70 Badge">
+                            <p>Mendapatkan Skor 70 Poin</p>
+                        </div>
+                    `;
+                    break;
+                case 'score70_60sec':
+                    badgeElement = `
+                        <div class="badge">
+                            <img src="gambar/2.jpg" alt="Score 70 in 60 seconds Badge">
+                            <p>Mendapatkan Skor 70 Poin Dalam 60 Detik</p>
+                        </div>
+                    `;
+                    break;
+                case 'score80':
+                    badgeElement = `
+                        <div class="badge">
+                            <img src="gambar/3.jpg" alt="Score Badge">
+                            <p>Mendapatkan Skor 80 Poin</p>
+                        </div>
+                    `;
+                    break;
+            }
+            badgesContainer.innerHTML += badgeElement;
+        });
+
+        
+        function goBack() {
+            window.location.href = 'user.html';
+        }
+        document.getElementById('klasemen').addEventListener('click', () => {
+                     window.location.href='klasemen.html';
+                   });
+    
+                    document.getElementById('logout').addEventListener('click', () => {
+                localStorage.removeItem('username');
+                window.location.href = 'index.html';
+            });
+    </script>
+</body>
+</html>

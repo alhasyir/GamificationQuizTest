@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Form Pembuatan Quiz</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Press Start 2P', cursive;
+        }
+    </style>
+</head>
+<body class="bg-white text-white min-h-screen flex items-center justify-center" style="background-image: url('/gambar/bg.jpeg'); background-size: cover; background-attachment: fixed;">
+<div class="container mx-auto p-8 bg-gray-800 rounded-lg shadow-lg max-w-xl">
+    <h1 class="text-4xl font-bold text-yellow-500 mb-6 text-center">Input Quiz</h1>
+    <form id="quizForm" class="space-y-4">
+        <div>
+            <label for="level" class="block text-lg">Level Quiz</label>
+            <select id="level" name="level" required disabled class="w-full p-2 mt-1 bg-gray-700 text-white rounded-md">
+                <option value="tinggi">Tinggi</option>
+            </select>
+        </div>
+        
+        <div>
+            <label for="questionNumber" class="block text-lg">Nomor Pertanyaan</label>
+            <select id="questionNumber" name="questionNumber" required class="w-full p-2 mt-1 bg-gray-700 text-white rounded-md">
+                <option value="1">1</option>
+                <option value="2">2</option>
+                <option value="3">3</option>
+                <option value="4">4</option>
+                <option value="5">5</option>
+                <option value="6">6</option>
+                <option value="7">7</option>
+                <option value="8">8</option>
+                <option value="9">9</option>
+                <option value="10">10</option>
+            </select>
+        </div>
+        
+        <div>
+            <label for="questionText" class="block text-lg">Pertanyaan</label>
+            <textarea id="questionText" name="questionText" rows="4" required class="w-full p-2 mt-1 bg-gray-700 text-white rounded-md"></textarea>
+        </div>
+        
+        <div>
+            <label for="questionImage" class="block text-lg">Sisipkan Gambar (opsional)</label>
+            <input type="file" id="questionImage" name="questionImage" accept="image/*" class="w-full p-2 mt-1 bg-gray-700 text-white rounded-md">
+        </div>
+        
+        <div>
+            <label for="optionA" class="block text-lg">Pilihan A</label>
+            <input type="text" id="optionA" name="optionA" required class="w-full p-2 mt-1 bg-gray-700 text-white rounded-md">
+        </div>
+        
+        <div>
+            <label for="optionB" class="block text-lg">Pilihan B</label>
+            <input type="text" id="optionB" name="optionB" required class="w-full p-2 mt-1 bg-gray-700 text-white rounded-md">
+        </div>
+        
+        <div>
+            <label for="optionC" class="block text-lg">Pilihan C</label>
+            <input type="text" id="optionC" name="optionC" required class="w-full p-2 mt-1 bg-gray-700 text-white rounded-md">
+        </div>
+        
+        <div>
+            <label for="optionD" class="block text-lg">Pilihan D</label>
+            <input type="text" id="optionD" name="optionD" required class="w-full p-2 mt-1 bg-gray-700 text-white rounded-md">
+        </div>
+        
+        <div>
+            <label for="correctOption" class="block text-lg">Pilihan Benar</label>
+            <select id="correctOption" name="correctOption" required class="w-full p-2 mt-1 bg-gray-700 text-white rounded-md">
+                <option value="A">A</option>
+                <option value="B">B</option>
+                <option value="C">C</option>
+                <option value="D">D</option>
+            </select>
+        </div>
+
+        <div class="flex justify-between">
+            <button type="button" onclick="saveQuestion()" class="bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded-full transition duration-300">Save Pertanyaan</button>
+            <button type="button" onclick="lockQuestions()" class="bg-red-600 hover:bg-red-700 text-white py-2 px-4 rounded-full transition duration-300">Kunci Pertanyaan</button>
+        </div>
+    </form>
+    
+    <div id="savedQuestions" class="mt-8">
+        <h2 class="text-2xl font-bold text-yellow-500">List Pertanyaan</h2>
+    </div>
+</div>
+
+<!-- Modal -->
+<div id="modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden">
+    <div class="bg-white rounded-lg p-8 shadow-lg max-w-sm w-full text-center">
+        <h2 id="modalTitle" class="text-2xl font-bold mb-4">Modal Title</h2>
+        <p id="modalContent" class="text-gray-700 mb-6">Modal Content</p>
+        <button id="closeModal" class="py-2 px-4 bg-blue-500 text-white rounded-lg transition transform hover:bg-blue-600">Tutup</button>
+    </div>
+</div>
+
+<script>
+    const savedQuestions = JSON.parse(localStorage.getItem('savedQuestionsLevel3')) || [];
+    const usedQuestionNumbers = new Set(savedQuestions.map(question => question.questionNumber));
+
+    document.addEventListener('DOMContentLoaded', () => {
+        renderSavedQuestions();
+    });
+
+    function showModal(title, message) {
+        const modal = document.getElementById('modal');
+        const modalTitle = document.getElementById('modalTitle');
+        const modalContent = document.getElementById('modalContent');
+        modalTitle.textContent = title;
+        modalContent.textContent = message;
+        modal.classList.remove('hidden');
+    }
+
+    document.getElementById('closeModal').addEventListener('click', () => {
+        document.getElementById('modal').classList.add('hidden');
+    });
+
+    function saveQuestion() {
+        const questionNumber = document.getElementById('questionNumber').value;
+        const questionText = document.getElementById('questionText').value;
+        const questionImage = document.getElementById('questionImage').files[0];
+        const optionA = document.getElementById('optionA').value;
+        const optionB = document.getElementById('optionB').value;
+        const optionC = document.getElementById('optionC').value;
+        const optionD = document.getElementById('optionD').value;
+        const correctOption = document.getElementById('correctOption').value;
+
+        if (usedQuestionNumbers.has(questionNumber)) {
+            showModal('Error', 'Nomor sudah digunakan, pilih nomor lain.');
+            return;
+        }
+
+        if (!questionText || !optionA || !optionB || !optionC || !optionD || !correctOption) {
+            showModal('Error', 'Semua kolom kosong harus diisi.');
+            return;
+        }
+
+        let imageUrl = '';
+        if (questionImage) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                imageUrl = e.target.result;
+                saveToLocalStorage(questionNumber, questionText, imageUrl, optionA, optionB, optionC, optionD, correctOption);
+            };
+            reader.readAsDataURL(questionImage);
+        } else {
+            saveToLocalStorage(questionNumber, questionText, imageUrl, optionA, optionB, optionC, optionD, correctOption);
+        }
+
+        document.getElementById('quizForm').reset();
+    }
+
+    function saveToLocalStorage(questionNumber, questionText, imageUrl, optionA, optionB, optionC, optionD, correctOption) {
+        const question = {
+            questionNumber,
+            questionText,
+            imageUrl,
+            options: { A: optionA, B: optionB, C: optionC, D: optionD },
+            correctOption
+        };
+        savedQuestions.push(question);
+        localStorage.setItem('savedQuestions', JSON.stringify(savedQuestions));
+        usedQuestionNumbers.add(questionNumber);
+        renderSavedQuestions();
+    }
+
+    function renderSavedQuestions() {
+        const savedQuestionsContainer = document.getElementById('savedQuestions');
+        savedQuestionsContainer.innerHTML = '<h2 class="text-2xl font-bold text-yellow-500">List Pertanyaan</h2>';
+
+        savedQuestions.forEach((question, index) => {
+            const quizItem = document.createElement('div');
+            quizItem.className = 'quiz-item bg-gray-700 p-4 rounded-md mb-4';
+
+            let imageHtml = '';
+            if (question.imageUrl) {
+                imageHtml = `<img src="${question.imageUrl}" alt="Question Image" class="mt-2 rounded-md">`;
+            }
+
+            quizItem.innerHTML = `
+                <h3 class="text-xl font-bold text-yellow-400">Pertanyaan ${question.questionNumber}</h3>
+                <p class="mt-2">${question.questionText}</p>
+                ${imageHtml}
+                <ul class="mt-2 space-y-1">
+                    <li>A: ${question.options.A}</li>
+                    <li>B: ${question.options.B}</li>
+                    <li>C: ${question.options.C}</li>
+                    <li>D: ${question.options.D}</li>
+                </ul>
+                <p class="mt-2 text-yellow-500">Pilihan Benar: ${question.correctOption}</p>
+                <div class="flex mt-2">
+                    <button class="edit bg-blue-600 hover:bg-blue-700 text-white py-1 px-3 rounded-full transition duration-300 mr-2" onclick="editQuestion(${index})">Edit</button>
+                    <button class="delete bg-red-600 hover:bg-red-700 text-white py-1 px-3 rounded-full transition duration-300" onclick="deleteQuestion(${index})">Hapus</button>
+                </div>
+            `;
+
+            savedQuestionsContainer.appendChild(quizItem);
+        });
+    }
+
+    function editQuestion(index) {
+        const question = savedQuestions[index];
+
+        document.getElementById('questionNumber').value = question.questionNumber;
+        document.getElementById('questionText').value = question.questionText;
+        document.getElementById('optionA').value = question.options.A;
+        document.getElementById('optionB').value = question.options.B;
+        document.getElementById('optionC').value = question.options.C;
+        document.getElementById('optionD').value = question.options.D;
+        document.getElementById('correctOption').value = question.correctOption;
+
+        deleteQuestion(index);
+    }
+
+    function deleteQuestion(index) {
+        const questionNumber = savedQuestions[index].questionNumber;
+        usedQuestionNumbers.delete(questionNumber);
+        savedQuestions.splice(index, 1);
+        localStorage.setItem('savedQuestions', JSON.stringify(savedQuestions));
+        renderSavedQuestions();
+    }
+
+    function lockQuestions() {
+        if (savedQuestions.length < 10) {
+            showModal('Error', 'Kamu harus membuat 10 pertanyaan terlebih dahulu sebelum dikunci.');
+            return;
+        }
+        window.location.href = 'instruktur.html';  
+    }
+</script>
+</body>
+</html>
