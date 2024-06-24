@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Form Pembuatan Quiz Level Menengah</title>
+    <title>Form Pembuatan Quiz Level 2</title>
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <style>
         body {
@@ -13,12 +13,12 @@
 </head>
 <body class="bg-white text-white min-h-screen flex items-center justify-center" style="background-image: url('/gambar/bg.jpeg'); background-size: cover; background-attachment: fixed;">
 <div class="container mx-auto p-8 bg-gray-800 rounded-lg shadow-lg max-w-xl">
-    <h1 class="text-4xl font-bold text-yellow-500 mb-6 text-center">Input Quiz</h1>
+    <h1 class="text-4xl font-bold text-yellow-500 mb-6 text-center">Input Quiz Level 2</h1>
     <form id="quizForm" class="space-y-4">
         <div>
             <label for="level" class="block text-lg">Level Quiz</label>
             <select id="level" name="level" required disabled class="w-full p-2 mt-1 bg-gray-700 text-white rounded-md">
-                <option value="menengah">Menengah</option>
+                <option value="level2">Level 2</option>
             </select>
         </div>
         
@@ -104,6 +104,7 @@
 
     document.addEventListener('DOMContentLoaded', () => {
         renderSavedQuestions();
+        updateQuestionNumberOptions();
     });
 
     function showModal(title, message) {
@@ -119,118 +120,148 @@
         document.getElementById('modal').classList.add('hidden');
     });
 
-    function saveQuestion() {
-        const questionNumber = document.getElementById('questionNumber').value;
-        const questionText = document.getElementById('questionText').value;
-        const questionImage = document.getElementById('questionImage').files[0];
-        const optionA = document.getElementById('optionA').value;
-        const optionB = document.getElementById('optionB').value;
-        const optionC = document.getElementById('optionC').value;
-        const optionD = document.getElementById('optionD').value;
-        const correctOption = document.getElementById('correctOption').value;
+    document.addEventListener('DOMContentLoaded', () => {
+    renderSavedQuestions();
+    updateQuestionNumberOptions();
+});
 
-        if (usedQuestionNumbers.has(questionNumber)) {
-            showModal('Error', 'Nomor sudah digunakan, pilih nomor lain.');
-            return;
-        }
+function saveQuestion() {
+    const questionNumber = document.getElementById('questionNumber').value;
+    const questionText = document.getElementById('questionText').value;
+    const questionImage = document.getElementById('questionImage').files[0];
+    const optionA = document.getElementById('optionA').value;
+    const optionB = document.getElementById('optionB').value;
+    const optionC = document.getElementById('optionC').value;
+    const optionD = document.getElementById('optionD').value;
+    const correctOption = document.getElementById('correctOption').value;
 
-        if (!questionText || !optionA || !optionB || !optionC || !optionD || !correctOption) {
-            showModal('Error', 'Semua kolom kosong harus diisi.');
-            return;
-        }
+    if (usedQuestionNumbers.has(questionNumber)) {
+        showModal('Error', 'Nomor sudah digunakan, pilih nomor lain.');
+        return;
+    }
 
-        let imageUrl = '';
-        if (questionImage) {
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                imageUrl = e.target.result;
-                saveToLocalStorage(questionNumber, questionText, imageUrl, optionA, optionB, optionC, optionD, correctOption);
-            };
-            reader.readAsDataURL(questionImage);
-        } else {
+    if (!questionText || !optionA || !optionB || !optionC || !optionD || !correctOption) {
+        showModal('Error', 'Semua kolom kosong harus diisi.');
+        return;
+    }
+
+    let imageUrl = '';
+    if (questionImage) {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            imageUrl = e.target.result;
             saveToLocalStorage(questionNumber, questionText, imageUrl, optionA, optionB, optionC, optionD, correctOption);
-        }
-
-        document.getElementById('quizForm').reset();
-    }
-
-    function saveToLocalStorage(questionNumber, questionText, imageUrl, optionA, optionB, optionC, optionD, correctOption) {
-        const question = {
-            questionNumber,
-            questionText,
-            imageUrl,
-            options: { A: optionA, B: optionB, C: optionC, D: optionD },
-            correctOption
+            updateQuestionNumberOptions();
         };
-        savedQuestions.push(question);
-        localStorage.setItem('savedQuestionsLevel2', JSON.stringify(savedQuestions));
-        usedQuestionNumbers.add(questionNumber);
-        renderSavedQuestions();
+        reader.readAsDataURL(questionImage);
+    } else {
+        saveToLocalStorage(questionNumber, questionText, imageUrl, optionA, optionB, optionC, optionD, correctOption);
+        updateQuestionNumberOptions();
     }
 
-    function renderSavedQuestions() {
-        const savedQuestionsContainer = document.getElementById('savedQuestions');
-        savedQuestionsContainer.innerHTML = '<h2 class="text-2xl font-bold text-yellow-500">List Pertanyaan</h2>';
+    document.getElementById('quizForm').reset();
+}
 
-        savedQuestions.forEach((question, index) => {
-            const quizItem = document.createElement('div');
-            quizItem.className = 'quiz-item bg-gray-700 p-4 rounded-md mb-4';
+function saveToLocalStorage(questionNumber, questionText, imageUrl, optionA, optionB, optionC, optionD, correctOption) {
+    const question = {
+        questionNumber,
+        questionText,
+        imageUrl,
+        options: { A: optionA, B: optionB, C: optionC, D: optionD },
+        correctOption
+    };
+    savedQuestions.push(question);
+    localStorage.setItem('savedQuestionsLevel2', JSON.stringify(savedQuestions));
+    usedQuestionNumbers.add(questionNumber);
+    renderSavedQuestions();
+    updateQuestionNumberOptions(); // Ensure the dropdown updates after saving
+}
 
-            let imageHtml = '';
-            if (question.imageUrl) {
-                imageHtml = `<img src="${question.imageUrl}" alt="Question Image" class="mt-2 rounded-md">`;
-            }
+function renderSavedQuestions() {
+    const savedQuestionsContainer = document.getElementById('savedQuestions');
+    savedQuestionsContainer.innerHTML = '<h2 class="text-2xl font-bold text-yellow-500">List Pertanyaan</h2>';
 
-            quizItem.innerHTML = `
-                <h3 class="text-xl font-bold text-yellow-400">Pertanyaan ${question.questionNumber}</h3>
-                <p class="mt-2">${question.questionText}</p>
-                ${imageHtml}
-                <ul class="mt-2 space-y-1">
-                    <li>A: ${question.options.A}</li>
-                    <li>B: ${question.options.B}</li>
-                    <li>C: ${question.options.C}</li>
-                    <li>D: ${question.options.D}</li>
-                </ul>
-                <p class="mt-2 text-yellow-500">Pilihan Benar: ${question.correctOption}</p>
-                <div class="flex mt-2">
-                    <button class="edit bg-blue-600 hover:bg-blue-700 text-white py-1 px-3 rounded-full transition duration-300 mr-2" onclick="editQuestion(${index})">Edit</button>
-                    <button class="delete bg-red-600 hover:bg-red-700 text-white py-1 px-3 rounded-full transition duration-300" onclick="deleteQuestion(${index})">Hapus</button>
-                </div>
-            `;
+    savedQuestions.forEach((question, index) => {
+        const quizItem = document.createElement('div');
+        quizItem.className = 'quiz-item bg-gray-700 p-4 rounded-md mb-4';
 
-            savedQuestionsContainer.appendChild(quizItem);
-        });
-    }
-
-    function editQuestion(index) {
-        const question = savedQuestions[index];
-
-        document.getElementById('questionNumber').value = question.questionNumber;
-        document.getElementById('questionText').value = question.questionText;
-        document.getElementById('optionA').value = question.options.A;
-        document.getElementById('optionB').value = question.options.B;
-        document.getElementById('optionC').value = question.options.C;
-        document.getElementById('optionD').value = question.options.D;
-        document.getElementById('correctOption').value = question.correctOption;
-
-        deleteQuestion(index);
-    }
-
-    function deleteQuestion(index) {
-        const questionNumber = savedQuestions[index].questionNumber;
-        usedQuestionNumbers.delete(questionNumber);
-        savedQuestions.splice(index, 1);
-        localStorage.setItem('savedQuestionsLevel2', JSON.stringify(savedQuestions));
-        renderSavedQuestions();
-    }
-
-    function lockQuestions() {
-        if (savedQuestions.length < 10) {
-            showModal('Error', 'Kamu harus membuat 10 pertanyaan terlebih dahulu sebelum dikunci.');
-            return;
+        let imageHtml = '';
+        if (question.imageUrl) {
+            imageHtml = `<img src="${question.imageUrl}" alt="Question Image" class="mt-2 rounded-md">`;
         }
-        window.location.href = 'instruktur.html';  
+
+        quizItem.innerHTML = `
+            <h3 class="text-xl font-bold text-yellow-400">Pertanyaan ${question.questionNumber}</h3>
+            <p class="mt-2">${question.questionText}</p>
+            ${imageHtml}
+            <ul class="mt-2 space-y-1">
+                <li>A: ${question.options.A}</li>
+                <li>B: ${question.options.B}</li>
+                <li>C: ${question.options.C}</li>
+                <li>D: ${question.options.D}</li>
+            </ul>
+            <p class="mt-2 text-yellow-500">Pilihan Benar: ${question.correctOption}</p>
+            <div class="flex mt-2">
+                <button class="edit bg-blue-600 hover:bg-blue-700 text-white py-1 px-3 rounded-full transition duration-300 mr-2" onclick="editQuestion(${index})">Edit</button>
+                <button class="delete bg-red-600 hover:bg-red-700 text-white py-1 px-3 rounded-full transition duration-300" onclick="deleteQuestion(${index})">Hapus</button>
+            </div>
+        `;
+
+        savedQuestionsContainer.appendChild(quizItem);
+    });
+}
+
+function editQuestion(index) {
+    const question = savedQuestions[index];
+
+    document.getElementById('questionNumber').value = question.questionNumber;
+    document.getElementById('questionText').value = question.questionText;
+    document.getElementById('optionA').value = question.options.A;
+    document.getElementById('optionB').value = question.options.B;
+    document.getElementById('optionC').value = question.options.C;
+    document.getElementById('optionD').value = question.options.D;
+    document.getElementById('correctOption').value = question.correctOption;
+
+    deleteQuestion(index);
+}
+
+function deleteQuestion(index) {
+    const questionNumber = savedQuestions[index].questionNumber;
+    usedQuestionNumbers.delete(questionNumber);
+    savedQuestions.splice(index, 1);
+    localStorage.setItem('savedQuestionsLevel2', JSON.stringify(savedQuestions));
+    updateQuestionNumberOptions();
+    renderSavedQuestions();
+}
+
+function updateQuestionNumberOptions() {
+    const questionNumberSelect = document.getElementById('questionNumber');
+    const currentValue = questionNumberSelect.value;
+    questionNumberSelect.innerHTML = '';
+
+    for (let i = 1; i <= 10; i++) {
+        if (!usedQuestionNumbers.has(String(i))) {
+            const option = document.createElement('option');
+            option.value = i;
+            option.textContent = i;
+            questionNumberSelect.appendChild(option);
+        }
     }
+
+    if (questionNumberSelect.querySelector(`option[value="${currentValue}"]`)) {
+        questionNumberSelect.value = currentValue;
+    } else {
+        questionNumberSelect.value = questionNumberSelect.querySelector('option') ? questionNumberSelect.querySelector('option').value : '';
+    }
+}
+
+function lockQuestions() {
+    if (savedQuestions.length < 10) {
+        showModal('Error', 'Kamu harus membuat 10 pertanyaan terlebih dahulu sebelum dikunci.');
+        return;
+    }
+    window.location.href = 'instruktur.html';  
+}
 </script>
 </body>
 </html>
