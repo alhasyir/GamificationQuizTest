@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Form Pembuatan Quiz</title>
+    <title>Form Pembuatan Quiz Level Tinggi</title>
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <style>
         body {
@@ -18,7 +18,7 @@
         <div>
             <label for="level" class="block text-lg">Level Quiz</label>
             <select id="level" name="level" required disabled class="w-full p-2 mt-1 bg-gray-700 text-white rounded-md">
-                <option value="tinggi">Tinggi</option>
+                <option value="Tinggi">Tinggi</option>
             </select>
         </div>
         
@@ -163,7 +163,7 @@
             correctOption
         };
         savedQuestions.push(question);
-        localStorage.setItem('savedQuestions', JSON.stringify(savedQuestions));
+        localStorage.setItem('savedQuestionsLevel3', JSON.stringify(savedQuestions));
         usedQuestionNumbers.add(questionNumber);
         renderSavedQuestions();
     }
@@ -220,7 +220,7 @@
         const questionNumber = savedQuestions[index].questionNumber;
         usedQuestionNumbers.delete(questionNumber);
         savedQuestions.splice(index, 1);
-        localStorage.setItem('savedQuestions', JSON.stringify(savedQuestions));
+        localStorage.setItem('savedQuestionsLevel3', JSON.stringify(savedQuestions));
         renderSavedQuestions();
     }
 
